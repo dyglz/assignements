@@ -1,5 +1,4 @@
-# assignements
-CA_Assignements
+### assignements
 
-1. Task_1: deadline 06/03/2025
+1. Task_1: deadline 06/03/2025 [✔]
 2. 
