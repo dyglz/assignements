@@ -13,16 +13,16 @@
 # 7. Github
 
 # Extra Features
-# 1. Save & Load Tasks
+# 1. Save & Load Tasks +
 # 2. Task Categories +
-# 3. Due Dates + 
-# 4. Prioritize Tasks +
-# 5. Search for Tasks by name
+# 3. Task Due Dates + 
+# 4. Tasks Priorities +
+# 5. Search for Tasks by name +
 
-
+import json
 from enum import Enum
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional
 
 
 class Task:
@@ -54,7 +54,7 @@ class Task_manager:
         self.all_tasks: List[Task] = []
 
 
-    def add_task(self):
+    def add_task(self) -> bool:
         description = self.set_description()  # mandatory to enter
         if description:
             category = self.set_category()
@@ -69,7 +69,7 @@ class Task_manager:
             return False
 
 
-    def set_description(self):
+    def set_description(self) -> str:
         while True:
             description = input("Enter task decription (max 30 characters) (or Q to quit): ").capitalize()
             if description == "Q":
@@ -84,7 +84,7 @@ class Task_manager:
                 return description
 
 
-    def set_category(self):
+    def set_category(self) -> Optional[str]:
         category = input("Enter task category (or press ENTER to skip): ")
         if category == "":
             return "none"
@@ -92,7 +92,7 @@ class Task_manager:
             return category
 
 
-    def set_deadline(self):
+    def set_deadline(self) -> Optional[str]:
         while True:
             due_date = input("Enter deadline (YYYY-MM-DD) (or press ENTER to skip): ")
             if due_date == "":
@@ -104,7 +104,7 @@ class Task_manager:
                 print("Invalid date format!")
 
 
-    def set_priority(self):
+    def set_priority(self) -> Priority:
         valid_priorities = ("low", "medium", "high")
 
         while True:
@@ -117,7 +117,9 @@ class Task_manager:
                 print("Invalid selection!")
 
 
-    def search_task_index(self):
+
+
+    def search_task_index(self) -> Optional[int]:
         self.task_report()
         while True:   
             try:
@@ -133,7 +135,6 @@ class Task_manager:
                 print("Invalid selection!")
 
 
-
     def set_status(self) -> str:
         selected_index = self.search_task_index()
         if selected_index == None:
@@ -144,7 +145,7 @@ class Task_manager:
         return f"Task: {selected_task.description} | Status: {'[✔]' if selected_task.status else '[ ]'}"
 
 
-    def remove_task(self):
+    def remove_task(self) -> str:
         selected_index = self.search_task_index()
         if selected_index == None:
             return "No task removed"
@@ -153,26 +154,9 @@ class Task_manager:
         return "Task is removed!"
 
 
-    def task_report(self):
-        self.all_tasks.sort(key=lambda x: x.deadline)
-
-        for index, task in enumerate(self.all_tasks, start=1):
-            print(f"{index}. {task}")
-
-        return self.all_tasks
 
 
-
-    def task_report_sorted_priority(self):
-        self.all_tasks.sort(key=lambda task: task.priority.value)
-
-        for index, task in enumerate(self.all_tasks, start=1):
-            print(f"{index}. {task}")
-
-        return self.all_tasks
-
-
-    def search_task_name(self):
+    def search_task_name(self) -> Optional[List[Task]]:
         self.task_report() 
 
         search_name = input("Enter Task Name (ENTER to quit): ").lower()
@@ -197,11 +181,78 @@ class Task_manager:
 
 
 
-    def export_task_report(self):
-        pass
+
+    def task_report(self) -> List[Task]:
+        self.all_tasks.sort(key=lambda x: x.deadline)
+
+        for index, task in enumerate(self.all_tasks, start=1):
+            print(f"{index}. {task}")
+
+        return self.all_tasks
+
+
+    def task_report_sorted_priority(self) -> List[Task]:
+        self.all_tasks.sort(key=lambda task: task.priority.value)
+
+        for index, task in enumerate(self.all_tasks, start=1):
+            print(f"{index}. {task}")
+
+        return self.all_tasks
+
+    
+    def delete_all_tasks(self) -> str:
+        if not self.all_tasks:
+            return "No tasks to delete"
+        else:
+            self.all_tasks = []
+            return "All tasks have been deleted."
 
 
 
+
+    def save_task_report(self, filename: str = "tasks.txt") -> None:
+        try:
+            tasks_data = []
+            for task in self.all_tasks:
+                task_dict = {
+                    "Description": task.description,
+                    "Category": task.category, 
+                    "Deadline": task.deadline,
+                    "Priority": task.priority.name,
+                    "Status": "[✔]" if task.status else "[ ]"
+                }
+                tasks_data.append(task_dict)
+
+
+            with open(filename, "w") as file:
+                json.dump(tasks_data, file, indent=4)
+            print(f"Tasks saved successfully to {filename}")
+        except Exception as e:
+            print(f"unexpected error: {e}")
+
+
+    def open_task_report(self, filename: str = "tasks.txt") -> None:
+        try:
+            with open(filename, "r") as file:
+                tasks_data = json.load(file)
+            self.all_tasks = []
+
+            for task_data in tasks_data:
+                description = task_data["Description"]
+                category = task_data["Category"]
+                deadline = task_data["Deadline"]
+                priority = Priority[task_data["Priority"].upper()]
+                status = task_data["Status"] == "[✔]"
+
+                new_task = Task(description, category, deadline, priority, status)
+                self.all_tasks.append(new_task)
+
+            print(f"Tasks loaded successfully from {filename}")
+
+        except Exception as e:
+            print(f"unexpected error: {e}")
+
+    
 
 
 task_manager = Task_manager()
@@ -210,8 +261,8 @@ task_manager = Task_manager()
 while True:
     
     print("\n===== To-Do List Manager =====")
-    print("1. Add New Task\n2. Set task as completed\n3. Remove task\n4. Search task by name")
-    print("5. Task Report | Sort by deadline\n6. Task Report | Sort by priority\n7. Save tasks to .txt file\n0. Exit")
+    print("1. Add New Task\n2. Set task as completed\n3. Remove task\n4. Search task by name\n5. Task Report | Sort by deadline")
+    print("6. Task Report | Sort by priority\n7. Save tasks to tasks.txt file\n8. Open tasks.txt file\n9. Delete all Tasks\n0. Exit")
 
     try:
         menu_selection = int(input("Enter your selection: "))
@@ -221,7 +272,7 @@ while True:
                 break
             elif menu_selection == 1:
                 task_manager.add_task()
-                task_manager.task_report()
+                # task_manager.task_report()
             elif menu_selection == 2:
                 print(task_manager.set_status())
             elif menu_selection == 3:
@@ -233,17 +284,15 @@ while True:
             elif menu_selection == 6:
                 task_manager.task_report_sorted_priority()
             elif menu_selection == 7:
-                
-                continue
+                task_manager.save_task_report()
             elif menu_selection == 8:
-                task_manager.export_task_report()
-                continue
+                task_manager.open_task_report()
+            elif menu_selection == 9:
+                print(task_manager.delete_all_tasks())
         else:
-            print("Invalid selection (1 - not in range)")
+            print("Invalid menu selection!")
     except ValueError:
-        print("Invalid selection (2 - wrong type)")
-    except TypeError as e:
-        print(f"Type error: {e} (3 when 0 to quit)")
+        print("Invalid symbol entered!")
     except Exception as e:
-        print(f"Error occurred: {e}")
+        print(f"Unexpected error occurred: {e}")
         
