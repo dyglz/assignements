@@ -123,6 +123,7 @@ class Task_manager:
             try:
                 search_index = int(input("Enter Task Index (0 to quit): "))
                 if search_index == 0:
+                    print("Search closed")
                     return None
                 elif 1 <= search_index <= len(self.all_tasks):
                     return search_index
@@ -130,27 +131,23 @@ class Task_manager:
                     print("Task does not exist!")
             except ValueError:
                 print("Invalid selection!")
-            # except Exception as e:
-            #     print(e)
+
 
 
     def set_status(self) -> str:
-        selected_index = int(self.search_task_index())
+        selected_index = self.search_task_index()
         if selected_index == None:
-            return f"Status is not modified"
-        elif selected_index:
-            selected_task = self.all_tasks[selected_index-1]
-            selected_task.status = not selected_task.status
-            return f"Task: {selected_task.description} | Status: {'[✔]' if selected_task.status else '[ ]'}"
-        else:
-            print("something wrong")
+            return "No status modified"
 
+        selected_task = self.all_tasks[selected_index-1]
+        selected_task.status = not selected_task.status
+        return f"Task: {selected_task.description} | Status: {'[✔]' if selected_task.status else '[ ]'}"
 
 
     def remove_task(self):
-        selected_index = int(self.search_task_index())
+        selected_index = self.search_task_index()
         if selected_index == None:
-            return "No task removed!"
+            return "No task removed"
 
         self.all_tasks.pop(selected_index-1)
         return "Task is removed!"
@@ -176,11 +173,33 @@ class Task_manager:
 
 
     def search_task_name(self):
-        pass
+        self.task_report() 
+
+        search_name = input("Enter Task Name (ENTER to quit): ").lower()
+
+        if search_name.strip() == "":
+            print("Search closed")
+            return None
+        
+        matching_tasks = []
+                
+        for task in self.all_tasks:
+            if search_name in task.description.lower():
+                matching_tasks.append(task)
+
+        if matching_tasks:
+            for task in matching_tasks:
+                print(task)
+            return matching_tasks
+        else:
+            print("No task under this descriprion!")
+            return None
+
 
 
     def export_task_report(self):
         pass
+
 
 
 
@@ -191,8 +210,8 @@ task_manager = Task_manager()
 while True:
     
     print("\n===== To-Do List Manager =====")
-    print("1. Add New Task\n2. Set task as completed\n3. Search task by name\n4. Remove task")
-    print("5. Task Report | Sort by deadline\n6. Task Report | Sort by priority\n7. Save tasks to .txt\n0. Exit")
+    print("1. Add New Task\n2. Set task as completed\n3. Remove task\n4. Search task by name")
+    print("5. Task Report | Sort by deadline\n6. Task Report | Sort by priority\n7. Save tasks to .txt file\n0. Exit")
 
     try:
         menu_selection = int(input("Enter your selection: "))
@@ -206,10 +225,9 @@ while True:
             elif menu_selection == 2:
                 print(task_manager.set_status())
             elif menu_selection == 3:
-                task_manager.search_task_name()
-                continue
-            elif menu_selection == 4:
                 print(task_manager.remove_task())
+            elif menu_selection == 4:
+                task_manager.search_task_name()
             elif menu_selection == 5:
                 task_manager.task_report()
             elif menu_selection == 6:
@@ -224,6 +242,8 @@ while True:
             print("Invalid selection (1 - not in range)")
     except ValueError:
         print("Invalid selection (2 - wrong type)")
+    except TypeError as e:
+        print(f"Type error: {e} (3 when 0 to quit)")
     except Exception as e:
-        print(e)
+        print(f"Error occurred: {e}")
         
