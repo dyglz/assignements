@@ -10,7 +10,7 @@
 # 4. Remove Tasks +
 # 5. Keep Running Until User Exits +
 # 6. Basic Input Validation +
-# 7. Github
+# 7. Github +
 
 # Extra Features
 # 1. Save & Load Tasks +
@@ -49,9 +49,9 @@ class Priority(Enum):
 
 
 
-class Task_manager:
+class TaskManager:
     def __init__(self):
-        self.all_tasks: List[Task] = []
+        self.all_tasks: List[Task] = []    # better to change to global value?
 
 
     def add_task(self) -> bool:
@@ -84,7 +84,7 @@ class Task_manager:
                 return description
 
 
-    def set_category(self) -> Optional[str]:
+    def set_category(self) -> str:
         category = input("Enter task category (or press ENTER to skip): ")
         if category == "":
             return "none"
@@ -92,7 +92,7 @@ class Task_manager:
             return category
 
 
-    def set_deadline(self) -> Optional[str]:
+    def set_deadline(self) -> str:
         while True:
             due_date = input("Enter deadline (YYYY-MM-DD) (or press ENTER to skip): ")
             if due_date == "":
@@ -111,7 +111,7 @@ class Task_manager:
             priority_input = input("Set priority (low, medium, high) (or press ENTER to skip): ").lower()
             if priority_input == "":
                 return Priority.NONE
-            if priority_input in valid_priorities:
+            if priority_input in valid_priorities: # can be done differently?
                 return Priority[priority_input.upper()]
             else:
                 print("Invalid selection!")
@@ -255,7 +255,7 @@ class Task_manager:
     
 
 
-task_manager = Task_manager()
+task_manager = TaskManager()
 
 
 while True:
