@@ -4,20 +4,21 @@
 # (str, list, dict) and allow interaction through a simple menu.
 
 # Mandatory Requirements
-# 1. Add Tasks
-# 2. View Tasks
-# 3. Mark Tasks as Completed
-# 4. Remove Tasks
-# 5. Keep Running Until User Exits
-# 6. Basic Input Validation
+# 1. Add Tasks + 
+# 2. View Tasks +
+# 3. Mark Tasks as Completed +
+# 4. Remove Tasks +
+# 5. Keep Running Until User Exits +
+# 6. Basic Input Validation +
 # 7. Github
 
 # Extra Features
 # 1. Save & Load Tasks
-# 2. Task Categories
-# 3. Due Dates
-# 4. Prioritize Tasks
-# 5. Search for Tasks
+# 2. Task Categories +
+# 3. Due Dates + 
+# 4. Prioritize Tasks +
+# 5. Search for Tasks by name
+
 
 from enum import Enum
 from datetime import datetime
@@ -26,7 +27,6 @@ from typing import List, Tuple
 
 class Task:
     def __init__(self, description: str = "", category: str = "", deadline: str = "%Y-%m-%d", priority: Enum = None, status: bool = False):
-    # Tuple[str] = ("low", "medium", "high")
         self.description = description
         self.category = category
         self.deadline = deadline
@@ -34,62 +34,72 @@ class Task:
         self.status = status
 
     def __str__(self):
-        return f"Description: {self.description}, Category: {self.category}, Deadline: {self.deadline}, Priority: {self.priority.name.lower()}, Status: {'[✔]' if self.status else '[ ]'}"
+        return f"Description: {self.description[:30]}, Category: {self.category[:20]}, Deadline: {self.deadline}, Priority: {self.priority.name.lower()}, Status: {'[✔]' if self.status else '[ ]'}"
+
 
 
 class Priority(Enum):
-    NONE = 0
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
+    NONE = 3
+    LOW = 2
+    MEDIUM = 1
+    HIGH = 0
+
+    def __str__(self):
+        return self.name.lower()
+
 
 
 class Task_manager:
     def __init__(self):
-        self.all_tasks: List[dict] = []
+        self.all_tasks: List[Task] = []
 
 
     def add_task(self):
-        description = input("Enter task decription: ")
-        category = input("Enter task category: ")
-        deadline = task_manager.set_deadline()
-        priority = task_manager.set_priority()
-        status = False
+        description = self.set_description()  # mandatory to enter
+        if description:
+            category = self.set_category()
+            deadline = self.set_deadline()
+            priority = self.set_priority()
+            status = False
+
+            new_task = Task(description, category, deadline, priority, status)
+            self.all_tasks.append(new_task)
+            self.all_tasks.sort(key=lambda x: x.deadline)
+        else:
+            return False
 
 
-
-        new_task = Task(description, category, deadline, priority, status)
-        self.all_tasks.append(new_task)
-
-        self.all_tasks.sort(key=lambda x: x.priority.value)
-
+    def set_description(self):
+        while True:
+            description = input("Enter task decription (max 30 characters) (or Q to quit): ").capitalize()
+            if description == "Q":
+                break
+            if len(description) > 30:
+                print("Description cannot exceed 30 characters!")
+                continue
+            if description.strip() == "":
+                print("Description field cannot be empty!")
+                continue
+            else:
+                return description
 
 
     def set_category(self):
-        while True:
-            try:
-                category =  input("Enter task category: ")
-
-                if category == None:
-                    return f"n/a"
-
-
-            except ValueError as e:
-                print(e)
-            pass
-
+        category = input("Enter task category (or press ENTER to skip): ")
+        if category == "":
+            return "none"
+        else:
+            return category
 
 
     def set_deadline(self):
         while True:
-            due_date = input("Enter deadline (YYYY-MM-DD): ")
-
+            due_date = input("Enter deadline (YYYY-MM-DD) (or press ENTER to skip): ")
             if due_date == "":
-                return "n/a"
-            
+                return "none" 
             try:
                 deadline = datetime.strptime(due_date, "%Y-%m-%d")
-                return deadline.strftime("%Y-%m-%d")
+                return deadline.strftime("%Y-%m-%d")  
             except ValueError:
                 print("Invalid date format!")
 
@@ -98,82 +108,78 @@ class Task_manager:
         valid_priorities = ("low", "medium", "high")
 
         while True:
-            try:
-                priority_input = input("Set priority (low, medium, high): ").lower()
-                if priority_input == "":
-                    return Priority.NONE
-                if priority_input in valid_priorities:
-                    return Priority[priority_input]
-                else:
-                    print("Invalid selection!")
-                    continue
-            except ValueError as e:
-                print(e)
+            priority_input = input("Set priority (low, medium, high) (or press ENTER to skip): ").lower()
+            if priority_input == "":
+                return Priority.NONE
+            if priority_input in valid_priorities:
+                return Priority[priority_input.upper()]
+            else:
+                print("Invalid selection!")
 
 
-
-    def set_status(self):
+    def search_task_index(self):
         self.task_report()
-        while True:
+        while True:   
             try:
-                selected_index = int(input("Enter the number of task to complete: "))
-                if 1 <= selected_index <= len(self.all_tasks):
-                    selected_task = self.all_tasks[selected_index-1]
-                    if hasattr(selected_task, "status"):
-                        selected_task.status = not selected_task.status
-                        print(f"Task: {selected_task.description} | Status: {'[✔]' if selected_task.status else '[ ]'}")
-                        break
+                search_index = int(input("Enter Task Index (0 to quit): "))
+                if search_index == 0:
+                    return None
+                elif 1 <= search_index <= len(self.all_tasks):
+                    return search_index
                 else:
-                    print("Invalid selection!")
-                
+                    print("Task does not exist!")
             except ValueError:
-                print("Enter a valid number!")
+                print("Invalid selection!")
+            # except Exception as e:
+            #     print(e)
 
+
+    def set_status(self) -> str:
+        selected_index = int(self.search_task_index())
+        if selected_index == None:
+            return f"Status is not modified"
+        elif selected_index:
+            selected_task = self.all_tasks[selected_index-1]
+            selected_task.status = not selected_task.status
+            return f"Task: {selected_task.description} | Status: {'[✔]' if selected_task.status else '[ ]'}"
+        else:
+            print("something wrong")
 
 
 
     def remove_task(self):
-        pass
+        selected_index = int(self.search_task_index())
+        if selected_index == None:
+            return "No task removed!"
+
+        self.all_tasks.pop(selected_index-1)
+        return "Task is removed!"
 
 
     def task_report(self):
+        self.all_tasks.sort(key=lambda x: x.deadline)
+
         for index, task in enumerate(self.all_tasks, start=1):
             print(f"{index}. {task}")
 
         return self.all_tasks
 
 
-    def search_task(self):
-        self.task_report()
 
-        while True:
-            try:
-                search_selection = input("Search Task by Index (I) or Name (N): ").lower()
-                if search_selection == "i":
-                    search_index = int(input("Enter task index: "))
-                    if 1 <= search_index <= len(self.all_tasks):
-                        selected_task = self.all_tasks[search_index-1]
-                        print(selected_task)
-                    else:
-                        print("Invalid selection!")
+    def task_report_sorted_priority(self):
+        self.all_tasks.sort(key=lambda task: task.priority.value)
 
-                elif search_selection == "n":
-                    search_name = input("Enter task description: ")
-                    if search_name in self.all_tasks["description"]:
-                        
-                        pass
-                else:
-                    print("Invalid selection (I/N)!")
-                
-            except ValueError:
-                print("Value Error!")
+        for index, task in enumerate(self.all_tasks, start=1):
+            print(f"{index}. {task}")
 
-            pass
+        return self.all_tasks
 
 
+    def search_task_name(self):
+        pass
 
 
-    def save_task_report(self):
+    def export_task_report(self):
         pass
 
 
@@ -185,41 +191,34 @@ task_manager = Task_manager()
 while True:
     
     print("\n===== To-Do List Manager =====")
-    print("1. Add New Task\n2. Set Category\n3. Set Deadline\n4. Set Priority\n5. Set task as completed")
-    print("6. Remove task\n7. View Task Report\n8. Search\n9. Save tasks to .txt\n0. Exit")
+    print("1. Add New Task\n2. Set task as completed\n3. Search task by name\n4. Remove task")
+    print("5. Task Report | Sort by deadline\n6. Task Report | Sort by priority\n7. Save tasks to .txt\n0. Exit")
 
     try:
         menu_selection = int(input("Enter your selection: "))
         if 0 <= menu_selection <= 9:
             if menu_selection == 0:
-                # task_manager.save_and_exit(self)
+                print("===    Program is Closed    ===")
                 break
             elif menu_selection == 1:
                 task_manager.add_task()
-                continue
+                task_manager.task_report()
             elif menu_selection == 2:
-                task_manager.set_category()
-                continue
+                print(task_manager.set_status())
             elif menu_selection == 3:
-                task_manager.set_deadline()
+                task_manager.search_task_name()
                 continue
             elif menu_selection == 4:
-                task_manager.set_priority() 
-                continue
+                print(task_manager.remove_task())
             elif menu_selection == 5:
-                task_manager.set_status()
-                continue
-            elif menu_selection == 6:
-                task_manager.remove_task()
-                continue
-            elif menu_selection == 7:
                 task_manager.task_report()
+            elif menu_selection == 6:
+                task_manager.task_report_sorted_priority()
+            elif menu_selection == 7:
+                
                 continue
             elif menu_selection == 8:
-                task_manager.search_task()
-                continue
-            elif menu_selection == 9:
-                task_manager.save_task_report()
+                task_manager.export_task_report()
                 continue
         else:
             print("Invalid selection (1 - not in range)")
