@@ -5,9 +5,9 @@
 
 # Mandatory Requirements
 # 1. Add Tasks + 
-# 2. View Tasks +
+# 2. View Tasks sorted by deadline or priority +
 # 3. Mark Tasks as Completed +
-# 4. Remove Tasks +
+# 4. Remove Tasks (one/all) +
 # 5. Keep Running Until User Exits +
 # 6. Basic Input Validation +
 # 7. Github +
